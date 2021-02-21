@@ -224,7 +224,7 @@ Vue.component('component-registro_alumnos',{
                                     </tr>
                                     <tr>
                                     <th>Código.</th>
-                                    <thNombre Completo</th>
+                                    <th>Nombre Completo</th>
                                     <th>Dirección</th>
                                     <th>Municipio</th>
                                     <th>Departamento</th>
