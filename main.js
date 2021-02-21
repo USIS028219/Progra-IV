@@ -6,31 +6,37 @@ var appVue = new Vue({
     el:'#appSistema',
     data:{
         forms:{
-            'categoria':{mostrar:false},
-            'producto':{mostrar:false},
-            'cliente':{mostrar:false},
+            'registro_alumnos':{mostrar:false},
+            'matricula':{mostrar:false},
+            'materias':{mostrar:false},
+            'inscripcion':{mostrar:false},
         }
     },
     methods:{
         abrirBd(){
-            let indexDb = indexedDB.open('db_sistema_facturacion',1);
+            let indexDb = indexedDB.open('db_sistema_academico',1);
             indexDb.onupgradeneeded=event=>{
                 let req=event.target.result,
-                    tblproductos = req.createObjectStore('tblproductos',{keyPath:'idProducto'}),
-                    tblcategorias = req.createObjectStore('tblcategorias',{keyPath:'idCategoria'}),
-                    tblclientes = req.createObjectStore('tblclientes',{keyPath:'idCliente'}),
-                    tblproveedores = req.createObjectStore('tblproveedores',{keyPath:'idProveedor'});
-                tblproductos.createIndex('idProducto','idProducto',{unique:true});
-                tblproductos.createIndex('codigo','codigo',{unique:false});
+
+                    tblmatricula = req.createObjectStore('tblmatricula',{keyPath:'idMatricula'}),
+                    tblregistro = req.createObjectStore('tblregistro',{keyPath:'idRegistro'}),
+                    tblmateria = req.createObjectStore('tblmateria',{keyPath:'idMateria'}),
+                    tblinscripcion = req.createObjectStore('tblinscripcion',{keyPath:'idInscripcion'})
+
+                tblmatricula.createIndex('idMatricula','idMatricula',{unique:true});
+                tblmatricula.createIndex('codigo','codigo',{unique:false});
+                tblmatricula.createIndex('id','id',{unique:false});
                 
-                tblcategorias.createIndex('idCategoria','idCategoria',{unique:true});
-                tblcategorias.createIndex('codigo','codigo',{unique:false});
+                tblregistro.createIndex('idRegistro','idRegistro',{unique:true});
+                tblregistro.createIndex('codigo','codigo',{unique:false});
 
-                tblclientes.createIndex('idCliente','idCliente',{unique:true});
-                tblclientes.createIndex('codigo','codigo',{unique:false});
+                tblmateria.createIndex('idMateria','idMateria',{unique:true});
+                tblmateria.createIndex('codigo','codigo',{unique:false});
 
-                tblproveedores.createIndex('idProveedor','idProveedor',{unique:true});
-                tblproveedores.createIndex('codigo','codigo',{unique:false});
+                tblinscripcion.createIndex('idInscripcion','idInscripcion',{unique:true});
+                tblinscripcion.createIndex('codigo','codigo',{unique:false});
+
+     
             };
             indexDb.onsuccess = evt=>{
                 db=evt.target.result;
