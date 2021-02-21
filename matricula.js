@@ -14,9 +14,10 @@ Vue.component('component-matricula',{
                 },
                 idMatricula : 0,
                 codigo    : '',
-                nombre    : '',
-                ciclo : '',
-                fecha : ''
+                dui       : '',
+                ciclo     : '',
+                carrera   : '',
+                fecha     : ''
             },
             matricula:[],
             registro_alumnos:[]
@@ -24,7 +25,7 @@ Vue.component('component-matricula',{
     },
     methods:{
         buscandoMatricula(){
-            this.matricula = this.matricula.filter((element,index,matricula) => element.nombre.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.codigo.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 );
+            this.matricula = this.matricula.filter((element,index,matricula) => element.codigo.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.dui.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.ciclo.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 );
             if( this.buscar.length<=0){
                 this.obtenerDatos();
             }
@@ -42,12 +43,8 @@ Vue.component('component-matricula',{
             });
             return buscarCodigo;
         },
+        
         async guardarMatricula(){
-            /**
-             * webSQL -> DB Relacional en el navegador
-             * localStorage -> BD NOSQL clave/valor
-             * indexedDB -> BD NOSQL clave/valor
-             */
             let store = this.abrirStore("tblmatricula",'readwrite'),
                 duplicado = false;
             if( this.accion=='nuevo' ){
@@ -110,13 +107,14 @@ Vue.component('component-matricula',{
             this.matricula.registro_alumno.label="";
             this.matricula.idMatricula='';
             this.matricula.codigo='';
-            this.matricula.nombre='';
+            this.matricula.carrera='';
+            this.matricula.dui='';
             this.matricula.ciclo='';
             this.matricula.fecha='';
             this.obtenerDatos();
         },
         eliminarMatricula(matri){
-            if( confirm(`¿DESEA ELIMINAR ESTE REGISTRO?:  ${matri.nombre}`) ){
+            if( confirm(`¿DESEA ELIMINAR ESTE REGISTRO?  ${matri.nombre}`) ){
                 let store = this.abrirStore("tblmatricula",'readwrite'),
                     req = store.delete(matri.idMatricula);
                 req.onsuccess=resp=>{
@@ -145,7 +143,7 @@ Vue.component('component-matricula',{
                     <div class="col-sm text-center text-white bg-info">
                         <div class="row">
                             <div class="col-11">
-                                <h5>Realizar Matricula</h5>
+                                <h5>Realizar Proceso de Matricula</h5>
                             </div>
                             <div class="col-1 align-middle" >
                                 <button type="button" onclick="appVue.forms['matricula'].mostrar=false" class="btn-close" aria-label="Close"></button>
@@ -154,7 +152,7 @@ Vue.component('component-matricula',{
                     </div>
                 </div>
                 <div class="row p-2">
-                        <div class="col-sm">Datos:</div>
+                        <div class="col-sm">Estudiante:</div>
                         <div class="col-sm">
                             <v-select-registro_alumnos v-model="matricula.registro_alumno" :options="registro_alumnos" placeholder="Seleccione"/>
                         </div>
@@ -164,15 +162,21 @@ Vue.component('component-matricula',{
                     <div class="col-sm">
                         <input v-model="matricula.codigo" required pattern="^[A-Z]{4}[0-9]{6}$" type="text" class="form-control form-control-sm" >
                     </div>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-sm">Carrera:</div>
+                        <div class="col-sm">
+                            <input v-model="matricula.carrera" type="text" class="form-control form-control-sm" >
+                        </div>
                 </div>
                 <div class="row p-2">
-                    <div class="col-sm">Nombre: </div>
+                    <div class="col-sm">Identificación: </div>
                     <div class="col-sm">
-                        <input v-model="matricula.nombre" type="text" class="form-control form-control-sm">
+                        <input v-model="matricula.dui" type="text" class="form-control form-control-sm">
                     </div>
                 </div>
                 <div class="row p-2">
-                    <div class="col-sm">Ciclo: </div>
+                    <div class="col-sm">Ciclo a Matricular: </div>
                     <div class="col-sm">
                         <input v-model="matricula.ciclo" type="text" class="form-control form-control-sm">
                     </div>
@@ -212,22 +216,25 @@ Vue.component('component-matricula',{
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th>Código</th>
-                                    <th>Nombre</th>
-                                    <th>Ciclo</th>
+                                    <th>Estudiante</th>
+                                    <th>Carrera</th>
+                                    <th>Identificación</th>
+                                    <th>Ciclo Matriculado</th>
                                     <th>Fecha de la Matricula</th>
+                                    <th>Nombre</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="matri in matricula" v-on:click="mostrarMatricula(matri)">
                                     <td>{{ matri.codigo }}</td>
-                                    <td>{{ matri.nombre }}</td>
+                                    <td>{{ matri.carrera }}</td>
+                                    <td>{{ matri.dui }}</td>
                                     <td>{{ matri.ciclo }}</td>
                                     <td>{{ matri.fecha }}</td>
                                     <td>{{ matri.registro_alumno.label }}</td>
                                     <td>
-                                        <a @click.stop="eliminarMatricula(matri)" class="btn btn-danger">DEL</a>
+                                        <a @click.stop="eliminarMatricula(matri)" class="btn btn-danger">ELIMINAR</a>
                                     </td>
                                 </tr>
                             </tbody>
