@@ -4,7 +4,7 @@
     font-size: 16px;
 }
 body{
-    background: rgb(94, 94, 94);
+    background: rgb(0, 0, 0);
     color: rgb(0, 0, 0);
 }
 input{
@@ -18,12 +18,12 @@ input:valid{
     border: 1px solid #dbd4d4;
 }
 input:invalid{
-    background-color: #f3baba;
-    border: 1px solid #fd0000;
+    background-color: #000000;
+    border: 1px solid #ffd3d3;
 }
 .parafo{
     color: rgb(255, 0, 0);
-    background: #c7ffc0;
+    background: #000000;
 }
 #parafo{
     text-transform: uppercase;
