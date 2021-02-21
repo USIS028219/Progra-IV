@@ -4,7 +4,7 @@
     font-size: 16px;
 }
 body{
-    background: rgb(212, 245, 223);
+    background: rgb(94, 94, 94);
     color: rgb(0, 0, 0);
 }
 input{
@@ -14,7 +14,7 @@ input{
     padding: 5px;
 }
 input:valid{
-    background-color: #c7ffc0;
+    background-color: #646464;
     border: 1px solid #dbd4d4;
 }
 input:invalid{
