@@ -1,31 +1,36 @@
 Vue.component('component-clientes',{
     data:()=>{
         return {
-            accion : 'nuevo',
-        msg    : '',
-        status : false,
-        error  : false,
-        buscar : "",
-        cliente:{
-            idCliente      : 0,
-            codigo         : '',
-            nombre         : '',
-            direccion      : '',
-            zona           : '',     
-        },
-        clientes:[]
-      }
+            accion              : 'nuevo',
+            msg                 : '',
+            status              : false,
+            error               : false,
+            buscar              : "",
+
+            cliente:{
+
+                idCliente : 0,
+                codigo              : '',
+                nombre              : '',
+                direccion           : '',
+                zona                : '',
+                
+            },
+            clientes:[]
+        }
     },
     methods:{
-        buscandoCliente(){
-            this.clientes = this.clientes.filter((element,index,clientes) => element.nombre.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.codigo.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 );
+        buscandoClientes(){
+            this.clientes = this.clientes.filter((element,index,clientes) => element.nombre.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.codigo.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.direccion.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.zona.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 );
             if( this.buscar.length<=0){
                 this.obtenerDatos();
             }
         },
+        
         buscandoCodigoCliente(store){
             let buscarCodigo = new Promise( (resolver,rechazar)=>{
                 let index = store.index("codigo"),
+                
                     data = index.get(this.cliente.codigo);
                 data.onsuccess=evt=>{
                     resolver(data);
@@ -37,6 +42,11 @@ Vue.component('component-clientes',{
             return buscarCodigo;
         },
         async guardarCliente(){
+            /**
+             * webSQL -> DB Relacional en el navegador
+             * localStorage -> BD NOSQL clave/valor
+             * indexedDB -> BD NOSQL clave/valor
+             */
             let store = this.abrirStore("tblclientes",'readwrite'),
                 duplicado = false;
             if( this.accion=='nuevo' ){
@@ -49,15 +59,16 @@ Vue.component('component-clientes',{
                 let query = store.put(this.cliente);
                 query.onsuccess=event=>{
                     this.obtenerDatos();
-                    this.limpiar();   
-                    this.mostrarMsg('Registro guardado con éxito',false);
+                    this.limpiar();
+                    
+                    this.mostrarMsg('Registro se guardo con exito',false);
                 };
                 query.onerror=event=>{
-                    this.mostrarMsg('Error al guardar registro',true);
+                    this.mostrarMsg('Error al guardar el registro',true);
                     console.log( event );
                 };
             } else{
-                this.mostrarMsg('Código de cliente duplicado',true);
+                this.mostrarMsg('Codigo de cliente duplicado',true);
             }
         },
         mostrarMsg(msg, error){
@@ -80,9 +91,8 @@ Vue.component('component-clientes',{
                 this.clientes = data.result;
             };
         },
-        
-        mostrarCliente(pro){
-            this.cliente = pro;
+        mostrarCliente(clt){ 
+            this.cliente = clt;
             this.accion='modificar';
         },
         limpiar(){
@@ -92,15 +102,14 @@ Vue.component('component-clientes',{
             this.cliente.nombre='';
             this.cliente.direccion='';
             this.cliente.zona='';
-           
             this.obtenerDatos();
         },
-        eliminarCliente(pro){
-            if( confirm(`¿Está seguro que desea eliminar a: ${pro.nombre}?`) ){
+        eliminarClientes(clt){
+            if( confirm(`Esta seguro que desea eliminar el cliente:  ${clt.nombre}`) ){
                 let store = this.abrirStore("tblclientes",'readwrite'),
-                    req = store.delete(pro.idCliente);
+                    req = store.delete(clt.idCliente);
                 req.onsuccess=resp=>{
-                    this.mostrarMsg('Registro eliminado con éxito',true);
+                    this.mostrarMsg('Registro eliminado con exito',true);
                     this.obtenerDatos();
                 };
                 req.onerror=resp=>{
@@ -119,94 +128,99 @@ Vue.component('component-clientes',{
     },
     template:`
     <form v-on:submit.prevent="guardarCliente" v-on:reset="limpiar">
-    <div class="row">
-        <div class="col-sm-5">
-            <div class="row p-2">
-                <div class="col-sm text-center text-white btn-dark">
-                    <h5>Registro de los Clientes</h5>
-                </div>
-            </div>
+            <div class="row">
+                <div class="col-sm-5">
+                    <div class="row p-2">
+                        <div class="col-sm text-center text-white bg-info">
+                            <div class="row">
+                                <div class="col-11">
+                                    <h5>REGISTRO DE CLIENTES</h5>
+                                </div>
+                                <div class="col-1 align-middle" >
+                                    <button type="button" onclick="appVue.forms['clientes'].mostrar=false" class="btn-close" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
             <div class="row p-2">
                 <div class="col-sm">Código:</div>
                 <div class="col-sm">
-                    <input v-model="cliente.codigo" required pattern="^[0-9]{4}$" type="text" class="form-control form-control-sm" placeholder="Código" >
+                    <input v-model="cliente.codigo" required type="text" class="form-control form-control-sm">
                 </div>
             </div>
             <div class="row p-2">
-                <div class="col-sm">Nombre: </div>
+                <div class="col-sm">Nombre:</div>
+           <div class="col-sm">
+               <input v-model="cliente.nombre"  type="text" class="form-control form-control-sm">
+           </div>
+            </div>
+            <div class="row p-2">
+                <div class="col-sm">Dirección:</div>
+           <div class="col-sm">
+               <input v-model="cliente.direccion"  type="text" class="form-control form-control-sm">
+           </div>
+            </div>
+            <div class="row p-2">
+                <div class="col-sm">Zona:</div>
                 <div class="col-sm">
-                    <input v-model="cliente.nombre" required pattern="[A-ZÑña-z0-9 ]{5,65}" type="text" class="form-control form-control-sm" placeholder="Nombre">
+                    <input v-model="cliente.zona"  type="text" class="form-control form-control-sm">
                 </div>
             </div>
+
             <div class="row p-2">
-                <div class="col-sm">Dirección: </div>
-                <div class="col-sm">
-                    <input v-model="cliente.direccion" required pattern="[A-ZÑña-z0-9 ]{5,65}" type="text" class="form-control form-control-sm" placeholder="Dirección">
+                        <div class="col-sm text-center">
+                            <input type="submit" value="Guardar" class="btn btn-dark">
+                            <input type="reset" value="Limpiar" class="btn btn-info">
+                        </div>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-sm text-center">
+                            <div v-if="status" class="alert" v-bind:class="[error ? 'alert-danger' : 'alert-success']">
+                                {{ msg }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="row p-2">
-                <div class="col-sm"> Zona: </div>
-                <div class="col-sm">
-                    <input v-model="cliente.zona" required pattern="[A-ZÑña-z0-9 ]{5,15}" type="text" class="form-control form-control-sm" placeholder="Zona">
-                </div>
-            </div>
-            
-            <div class="row p-2">
-                <div class="col-sm text-center">
-                    <input type="submit" value="Guardar" class="btn btn-dark">
-                    <input type="reset" value="Limpiar" class="btn btn-info">
-                </div>
-            </div>
-            <div class="row p-2">
-                <div class="col-sm text-center">
-                    <div v-if="status" class="alert" v-bind:class="[error ? 'alert-danger' : 'alert-success']">
-                        {{ msg }}
+                <div class="col-sm"></div>
+                <div class="col-sm-6 p-2">
+                    <div class="row text-center text-white bg-dark">
+                        <div class="col"><h5>Clientes Registrados</h5></div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <td colspan="5">
+                                            <input v-model="buscar" v-on:keyup="buscandoClientes" type="text" class="form-control form-contro-sm" placeholder="Búsqueda">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Dirección</th>
+                                    <th>Zona</th>
+                                    <th></th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="clt in clientes" v-on:click="mostrarCliente(clt)">
+                                    <td>{{ clt.codigo }}</td>
+                                    <td>{{ clt.nombre }}</td>
+                                    <td>{{ clt.direccion }}</td>
+                                    <td>{{ clt.zona }}</td>
+                                    <td>
+    
+                                            <a @click.stop="eliminarClientes(clt)" class="btn btn-danger">Eliminar</a>
+                                    </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        
-        <div class="col-sm"></div>
-        <div class="col-sm-6 p-2">
-            <div class="row text-center text-white bg-info">
-                <div class="col"><h5>Clientes Registrados</h5></div>
-            </div>
-            
-            <div class="row">
-                <div class="col">
-                    <table class="table table-sm table-hover">
-                        <thead>
-                            <tr>
-                                <td colspan="5">
-                                    <input v-model="buscar" v-on:keyup="buscandoCliente" type="text" class="form-control form-contro-sm" placeholder="Buscar Cliente">
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Código</th>
-                                <th>Nombre</th>
-                                <th>Dirección</th>
-                                <th>Zona</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="pro in clientes" v-on:click="mostrarCliente(pro)">
-                                <td>{{ pro.codigo }}</td>
-                                <td>{{ pro.nombre }}</td>
-                                <td>{{ pro.direccion }}</td>
-                                <td>{{ pro.zona }}</td>
-                                <td>
-                                    <a @click.stop="eliminarCliente(pro)" class="btn btn-danger">Eliminar</a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</form>
+        </form>
     `
 });
