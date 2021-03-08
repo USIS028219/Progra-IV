@@ -1,5 +1,4 @@
 Vue.component('v-select-clientes', VueSelect.VueSelect);
-
 Vue.component('component-lecturas',{
     data:()=>{
         return {
@@ -9,32 +8,34 @@ Vue.component('component-lecturas',{
             error  : false,
             buscar : "",
             lecturas:{
-                idLectura  : 0,
-                clientes:{ 
-                    id:0,
-                    label:''
-  
-              },
-                accion : 'nuevo',
-                lanterior : 0,
-                lactual : '',
-                pago : 0
+                idLectura : 0,
+                cliente : {
+                    id : 0,
+                    label : ''
+                },
+                codigo       : '',
+                fecha        : '',
+                lanterior    : '',
+                lactual      : '',
+                pago         : ''
             },
             lecturas:[],
-            Clientes:[]
+            clientes:[]
         }
     },
     methods:{
+      
         buscandoLectura(){
-            this.lecturas = this.lecturas.filter((element,index,lecturas) => element.docente.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.codigo.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 );
+            this.lecturas = this.lecturas.filter((element,index,lecturas) => element.fecha.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 || element.pago.toUpperCase().indexOf(this.buscar.toUpperCase())>=0 );
             if( this.buscar.length<=0){
-                this.obtenerLecturas();
+                this.obtenerDatos();
             }
         },
+
         buscandoCodigoLectura(store){
-            let buscarLectura = new Promise( (resolver,rechazar)=>{
+            let buscarCodigo = new Promise( (resolver,rechazar)=>{
                 let index = store.index("codigo"),
-                    data = index.get(this.lectura.codigo);
+                    data = index.get(this.lecturas.codigo);
                 data.onsuccess=evt=>{
                     resolver(data);
                 };
@@ -42,8 +43,9 @@ Vue.component('component-lecturas',{
                     rechazar(data);
                 };
             });
-            return buscarLectura;
+            return buscarCodigo;
         },
+        
         async guardarLectura(){
             /**
              * webSQL -> DB Relacional en el navegador
@@ -52,25 +54,26 @@ Vue.component('component-lecturas',{
              */
             let store = this.abrirStore("tbllecturas",'readwrite'),
                 duplicado = false;
-            if( this.lectura.accion=='nuevo' ){
-                this.lectura.idLectura = generarIdUnicoDesdeFecha();
-                
+            if( this.accion=='nuevo' ){
+                this.lecturas.idLectura = generarIdUnicoDesdeFecha();
+
                 let data = await this.buscandoCodigoLectura(store);
                 duplicado = data.result!=undefined;
             }
             if( duplicado==false){
-                let query = store.put(this.cliente);
+                let query = store.put(this.lecturas);
                 query.onsuccess=event=>{
                     this.obtenerDatos();
-                    this.limpiar();   
-                    this.mostrarMsg('Registro guardado con éxito',false);
+                    this.limpiar();
+
+                    this.mostrarMsg('La matricula se guardo con exito',false);
                 };
                 query.onerror=event=>{
-                    this.mostrarMsg('Error al guardar registro',true);
+                    this.mostrarMsg('Error al guardar lecturas',true);
                     console.log( event );
                 };
             } else{
-                this.mostrarMsg('Lectura duplicada',true);
+                this.mostrarMsg('Codigo de lecturas duplicado',true);
             }
         },
         mostrarMsg(msg, error){
@@ -86,46 +89,47 @@ Vue.component('component-lecturas',{
                 this.error = false;
             }, time*1000);
         },
-        obtenerLecturas(){
+        obtenerDatos(){
             let store = this.abrirStore('tbllecturas','readonly'),
                 data = store.getAll();
             data.onsuccess=resp=>{
                 this.lecturas = data.result;
             };
-            let storeClientes = this.abrirStore('tblclientes','readonly'),
-            dataLectura= storeClientes.getAll();
-        this.cliente = [];
-        dataLectura.onsuccess=resp=>{
-            dataLectura.result.forEach(element => {
-                this.cliente.push({id:element.idCliente, label:element.cliente});
-            });
-
-        };
+            let storeCliente = this.abrirStore('tblclientes', 'readonly'),
+                dataCliente = storeCliente.getAll();
+            this.clientes = [];
+            dataCliente.onsuccess=resp=>{
+                dataCliente.result.forEach(element => {
+                    this.clientes.push({id:element.idCliente, label:element.nombre});
+                });
+            };    
         },
-        mostrarLectura(pro){
-            this.lectura = pro;
-            this.lectura.accion='modificar';
+        mostrarLectura(lectu){
+            this.lecturas = lectu;
+            this.accion='modificar';
         },
         limpiar(){
-            this.lectura.accion='nuevo';
-            this.cliente.pro.id=0;
-            this.cliente.pro.label="";
-            this.lectura.idLectura='';
-            this.lectura.lanterior='';
-            this.lectura.lactual='';
-            this.lectura.pago='';
-            this.obtenerLecturas();
+            this.accion='nuevo';
+            this.lecturas.cliente.id=0;
+            this.lecturas.cliente.label="";
+            this.lecturas.idLectura='';
+            this.lecturas.codigo='';
+            this.lecturas.fecha='';
+            this.lecturas.lanterior='';
+            this.lecturas.lactual='';
+            this.lecturas.pago='';
+            this.obtenerDatos();
         },
-        eliminarLectura(lectura){
-            if( confirm(`¿Está seguro que desea eliminar a: ${pro.lanterior}?`) ){
+        eliminarLectura(lectu){
+            if( confirm(`Esta seguro que desea eliminar la lecturas:  ${lectu.codigo}`) ){
                 let store = this.abrirStore("tbllecturas",'readwrite'),
-                    req = store.delete(pro.idCliente);
+                    req = store.delete(lectu.idLectura);
                 req.onsuccess=resp=>{
-                    this.mostrarMsg('Registro eliminado con éxito',true);
+                    this.mostrarMsg('Lectura eliminada con exito',true);
                     this.obtenerDatos();
                 };
                 req.onerror=resp=>{
-                    this.mostrarMsg('Error al eliminar el registro',true);
+                    this.mostrarMsg('Error al eliminar lectura',true);
                     console.log( resp );
                 };
             }
@@ -136,114 +140,121 @@ Vue.component('component-lecturas',{
         }
     },
     created(){
-        //this.obtenerLecturas();
+        //this.obtenerDatos();
     },
-
     template:`
-        <form v-on:submit.prevent="guardarLectura" v-on:reset="limpiar">
-            <div class="row">
-                <div class="col-sm-5">
-                    <div class="row p-2">
-                        <div class="col-sm text-center text-white bg-primary">
-                            <div class="row">
-                                <div class="col-11">
-                                    <h5>REGISTRO DE LECTURAS</h5>
-                                </div>
-                                <div class="col-1 align-middle" >
-                                    <button type="button" onclick="appVue.forms['lectura'].mostrar=false" class="btn-close" aria-label="Close"></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-group-prepend card bg-light">
-                    <div class="row p-2">
-                    <div class="col-sm">Cliente:</div>
-                    <div class="col-sm">
-                           <v-select-clientes v-model="lectura.cliente" :options="clientes" placeholder="Por favor seleccione el cliente"/>
-                           </div>
-                       </div>
+    <form v-on:submit.prevent="guardarLectura" v-on:reset="limpiar">
+        <div class="row">
+            <div class="col-sm-5">
                 <div class="row p-2">
-                        <div class="col-sm">FECHA:</div>
-                        <div class="col-sm">
-                            <input v-model="lectura.idLectura type="date" readonly class="form-control form-control-sm" >
-                        </div>
-                    </div>
-                    <div class="row p-2">
-                        <div class="col-sm">LECTURA ANTERIOR</div>
-                        <div class="col-sm">
-                            <input v-model="lectura.lanterior" required type="text" readonly class="form-control form-control-sm" >
-                        </div>
-                    </div>
-                    <div class="row p-2">
-                        <div class="col-sm">LECTURA ACTUAL: </div>
-                        <div class="col-sm">
-                            <input v-model="lectura.lactual" required pattern="[A-ZÑña-z0-9, ]{5,65}" type="text" class="form-control form-control-sm">
-                        </div>
-                    </div>
-                    <div class="row p-2">
-                        <div class="col-sm">PAGO: </div>
-                        <div class="col-sm">
-                            <input v-model="lectura.pago" type="text" readonly class="form-control form-control-sm">
-                        </div>
-                    </div>
-                    </div>
-                    <div class="row p-2">
-                        <div class="col-sm text-center">
-                            <input type="submit" value="Guardar" class="btn btn-dark">
-                            <input type="reset" value="Limpiar" class="btn btn-warning">
-                        </div>
-                    </div>
-                    <div class="row p-2">
-                        <div class="col-sm text-center">
-                            <div v-if="status" class="alert" v-bind:class="[error ? 'alert-danger' : 'alert-success']">
-                                {{ msg }}
+                    <div class="col-sm text-center text-white bg-info">
+                        <div class="row">
+                            <div class="col-11">
+                                <h5>Registros de lecturas</h5>
+                            </div>
+                            <div class="col-1 align-middle" >
+                                <button type="button" onclick="appVue.forms['lecturas'].mostrar=false" class="btn-close" aria-label="Close"></button>
                             </div>
                         </div>
+                    </div>
+                    
+                <div class="row p-2">
+                    <div class="col-sm">Fecha: </div>
+                    <div class="col-sm">
+                        <input v-model="lecturas.fecha" type="date" class="form-control form-control-sm">
+                </div>
+                </div>
+                     <div class="row p-2">
+                    <div class="col-sm">Código:</div>
+                    <div class="col-sm">
+                        <input v-model="lecturas.codigo" required type="text" class="form-control form-control-sm" >
                     </div>
                 </div>
-                <div class="col-sm"></div>
-                <div class="col-sm-6 p-2">
-                    <div class="row text-center text-white bg-primary">
-                        <div class="col"><h5>LECTURAS REGISTRADAS</h5></div>
+                <div class="row p-2">
+                        <div class="col-sm">Clientes:</div>
+                        <div class="col-sm">
+                            <v-select-clientes v-model="lecturas.cliente" :options="clientes" placeholder="Seleccione un cliente"/>
+                        </div>
                     </div>
-                    <div class="row">
-                        <div class="col">
-                            <table class="table table-sm table-hover">
-                                <thead>
-                                    <tr>
-                                        <td colspan="5">
-                                            <input v-model="buscar" v-on:keyup="buscandoLectura" type="text" class="form-control form-contro-sm" placeholder="Buscar lecturas">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>CLIENTE</th>
-                                        <th>FECHA</th>
-                                        <th>LECTURA ANTERIOR</th>
-                                        <th>LECTURA ACTUAL</th>
-                                        <th>PAGO</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="pro in lecturas" v-on:click="mostrarLectura(pro)">
-                                        <td>{{pro.nombre.label}}</td>
-                                        <td>{{ pro.idLectura.label}}</td>
-                                        <td>{{ pro.lanterior.label}}</td>
-                                        <td>{{ pro.lactual}}</td>
-                                        <td>{{ pro.pago.label}}</td>
-                                        <td>
-                                            <a @click.stop="eliminarLectura(pro)" class="btn btn-danger">DEL</a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+        
+                <div class="row p-2">
+                    <div class="col-sm">Lectura Anterior: </div>
+                    <div class="col-sm">
+                        <input v-model="lecturas.lanterior" type="text" class="form-control form-control-sm">
+                    </div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-sm">Lectura Actual: </div>
+                    <div class="col-sm">
+                        <input v-model="lecturas.lactual" type="text" class="form-control form-control-sm">
+                    </div>
+                </div>
+             
+                <div class="row p-2">
+                    <div class="col-sm">Pago: </div>
+                    <div class="col-sm">
+                        <input v-model="lecturas.pago" type="text" class="form-control form-control-sm">
+                    </div>
+                </div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-sm text-center">
+                        <input type="submit" value="Guardar" class="btn btn-dark">
+                        <input type="reset" value="Limpiar" class="btn btn-info">
+                    </div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-sm text-center">
+                        <div v-if="status" class="alert" v-bind:class="[error ? 'alert-danger' : 'alert-success']">
+                            {{ msg }}
                         </div>
                     </div>
                 </div>
             </div>
-        </form>
-  
-            `
-            
-
+            <div class="col-sm"></div>
+            <div class="col-sm-6 p-2">
+                <div class="row text-center text-white bg-dark">
+                    <div class="col"><h5>Lecturas Registradas</h5></div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <td colspan="5">
+                                        <input v-model="buscar" v-on:keyup="buscandoLectura" type="text" class="form-control form-contro-sm" placeholder="Búsqueda">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Código</th>
+                                    <th>Cliente</th>
+                                    <th>Lectura Anterior</th>
+                                    <th>Lectura Actual</th>
+                                    <th>Pago</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="lectu in lecturas" v-on:click="mostrarLectura(lectu)">
+                                
+                                    <td>{{ lectu.fecha }}</td>
+                                    <td>{{ lectu.codigo }}</td>
+                                     <td>{{ lectu.cliente.label }}</td>
+                                    <td>{{ lectu.lanterior }}</td>
+                                    <td>{{ lectu.lactual }}</td>
+                                    <td>{{ lectu.pago }}</td>
+                                   
+                                    <td>
+                                        <a @click.stop="eliminarLectura(lectu)" class="btn btn-danger">Eliminar</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+`
 });
